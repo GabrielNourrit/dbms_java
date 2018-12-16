@@ -3,5 +3,6 @@ this project need to be in java 1.7
 2) run grammaireSQL.java Class wich is in SGBD.AnalyseurSyntaxique
 3) enjoy
 
-for more details you can read documents provides : architecture.png; choixconception.pdf,presentation.pdf and Dbms/doc/index.html
+this project was realized by Cessna Jefferson, Jules Noel, Gabriel Nourrit and Ballé Traore
 
+for more details you can read documents provides : architecture.png; choixconception.pdf,presentation.pdf and Dbms/doc/index.html
