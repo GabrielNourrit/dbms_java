@@ -1,0 +1,6 @@
+5;Salade;25
+12;Tomate;152
+4;Oignon;19
+25;Carotte;200
+92;Poireau;57
+189;Courge;18

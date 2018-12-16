@@ -1,0 +1,277 @@
+/**
+ * JavaCC template file created by SF JavaCC plugin 1.5.28+ wizard for JavaCC 1.5.0+
+ */
+options
+{
+  static = true;
+}
+
+PARSER_BEGIN(grammaireSQL)
+package SGBD.AnalyseurSyntaxique;
+import java.util.ArrayList;
+
+import SGBD.*;
+import SGBD.BDD.*;
+import SGBD.Gestion.*;
+import SGBD.BDD.type.*;
+
+public class grammaireSQL
+{
+  public static void main(String args []) throws ParseException
+  {
+    grammaireSQL parser = new grammaireSQL(System.in);
+    while (true)
+    {
+      System.out.println("Reading from standard input...");
+      System.out.print("Enter an SQL expression:");
+      try
+      {
+        String t=grammaireSQL.interrogation();
+        System.out.println(t);
+      }
+      catch (Exception e)
+      {
+        System.out.println("NOK.");
+        System.out.println(e.getMessage());
+        grammaireSQL.ReInit(System.in);
+      }
+      catch (Error e)
+      {
+		e.printStackTrace();
+        System.out.println("Oops.");
+        System.out.println(e.getMessage());
+        break;
+      }
+    }
+  }
+}
+
+PARSER_END(grammaireSQL)
+SKIP :
+{
+  " "| "\r"| "\t"| "\n"
+}
+
+
+TOKEN [IGNORE_CASE]:
+{
+  < SELECT :"SELECT">
+| < ORDRE: "DESC"|"ASC" >
+| < ORDERBY:"order by" >
+| < NJ:"NaturalJoin" >
+| < JOIN: "join">
+| < ON: "on">
+| < valeur_verite: "TRUE"|"FALSE"| "UNNKNOWN" >
+| <FROM: "FROM">
+| <WHERE: "WHERE">
+| < AND_OR :"AND"|"OR">
+| <NOT :"NOT">
+| < IS:"IS" >
+}
+//tous les terminaux
+TOKEN : /* OPERATORS */
+{
+  < PLUS : "+" >
+| < MINUS : "-" >
+| < MULTIPLY : "*" >
+| < DIVIDE : "/" >
+| <operateur_comparaison: "="|"<>"| "<"| ">"| "<="| ">=">
+
+}
+
+TOKEN [IGNORE_CASE]:
+{
+ < EXPRESSION: (< LETTER >) (< LETTER >|< DIGIT>)*>
+| < STRING: "'"(< LETTER2 >) (< LETTER2 >|< DIGIT>)*"'">
+| < ATTRIBUT :< EXPRESSION >"."< EXPRESSION >>
+| < #LETTER :["A"-"Z","_"]>
+| < #LETTER2 :["A"-"Z","_"," "]>
+}
+
+TOKEN :
+{
+  < CONSTANT : (< DIGIT >)+ >
+| < #DIGIT : [ "0"-"9" ] >
+}
+
+String interrogation():{String t;}
+{
+	t = expression_recherche() 
+	[clause_tri()]";"
+	{
+		return t;
+	}
+}
+void clause_tri():{}
+{
+	<ORDERBY> liste_criteres_tri()
+}
+
+void liste_criteres_tri():{}
+{
+	critere_tri() (","critere_tri())*
+}
+
+void critere_tri():{}
+{
+	resultat_recherche()[type_classement()]
+}
+
+void resultat_recherche():{}
+{
+  <EXPRESSION>
+}
+
+void type_classement():{}
+{
+  < ORDRE >
+}
+
+String expression_recherche():{String t;}
+{
+	t=terme_recherche()
+	{
+	  return t;
+	}
+}
+
+String terme_recherche():{String t;}
+{
+	t=specification_recherche()
+	{
+	  return t;
+	}
+}
+
+String specification_recherche():
+{
+  TablesRecherche t;
+  Table[] table;
+  Select r;
+  String[] attribut;
+  String[][] contraintesVides={ };
+  Condition contraintes=new Condition("",contraintesVides);
+  String orderby="";
+}
+{
+	<SELECT>
+	attribut=specifiation_resultats_recherche() t=specification_donnees_recherche()
+	[contraintes=specification_condition_recherche()]
+	{
+	  table = new Table[2];
+	  table[0]=t.table1;
+	  table[1]=t.table2;
+	  r=new Select(table,attribut,contraintes.contraintes,contraintes.typeCondition,t.join,orderby);
+	  return r.select();
+	}
+}
+
+String[] specifiation_resultats_recherche():
+{ArrayList<String> a= new ArrayList<String>();String s;String[] attribut={"*"};}
+{
+	"*"
+	{
+	  return attribut;
+	}
+	|s=element_liste_recherche() { a.add(s);}
+	("," s=element_liste_recherche() { a.add(s);})*
+	{
+	  attribut = new String[a.size()];
+	  for( int i=0; i<attribut.length;i++ ) attribut[i]=a.get(i);
+	  return attribut;
+	}
+}
+
+String element_liste_recherche():
+{String s;}
+{
+  s=colonne_recherche()
+  {
+    return s;
+  }
+}
+
+String colonne_recherche():
+{Token t;}
+{
+  t=< EXPRESSION > {return t.image;}
+}
+
+TablesRecherche specification_donnees_recherche():
+{ TablesRecherche s;}
+{
+  s=specification_tables_recherche()
+  {
+    return s;
+  }
+}
+
+TablesRecherche specification_tables_recherche():
+{Table s;TableJointure jointures= new TableJointure();}
+{
+  <FROM>s=reference_table()[ (jointures=jointure())+]
+  {
+    return new TablesRecherche(s,jointures.table,jointures.join);
+  }
+}
+
+Table reference_table():
+{Token t;String[] jointures= { };}
+{
+	t=< EXPRESSION >
+{
+	  return new Table(t.image);
+}
+}
+
+TableJointure jointure():
+{Token t1,t2;Table t;ArrayList<String> a= new ArrayList<String>(); String[] jointures= { }; }
+{
+  t1=< NJ > t=reference_table()
+  {
+	  jointures = new String[1];
+	  jointures[0]=t1.image;
+	  return new TableJointure(t,jointures);
+	}
+| < JOIN > t=reference_table()<ON> "(" t1=<ATTRIBUT ><operateur_comparaison>t2=<ATTRIBUT >")"
+{
+  jointures = new String[2];
+  jointures[0]=t1.image;
+  jointures[1]=t2.image;
+  return new TableJointure(t,jointures);
+}
+}
+
+Condition specification_condition_recherche():
+{Condition contraintes;}
+{
+  <WHERE>contraintes=condition_recherche()
+  {
+    return contraintes;
+  }
+}
+
+Condition condition_recherche():
+{Condition c;String typeContrainte="AND";String[][] contraintes;Token t0,t1,t2,t3;String[] s = {"","",""};ArrayList<String[]> a= new ArrayList<String[]>();}
+{
+  (t1=< STRING >|t1=< EXPRESSION >|t1=< CONSTANT >) t2=< operateur_comparaison > (t3=< STRING >|t3=< EXPRESSION >|t3=< CONSTANT >)
+	{
+	   s[0]=t1.image;s[1]=t2.image; s[2]=t3.image;
+	   a.add(s.clone());
+	}
+  (t0=< AND_OR > {typeContrainte=t0.image;}
+    (t1=< STRING >|t1=< EXPRESSION >|t1=< CONSTANT >) t2=< operateur_comparaison > (t3=< STRING >|t3=< EXPRESSION >|t3=< CONSTANT >)
+  {
+    s[0]=t1.image;s[1]=t2.image; s[2]=t3.image;
+    a.add(s.clone());
+  })*
+  {
+    contraintes = new String[a.size()][3];
+	for( int i=0; i<a.size();i++ ) {
+	  contraintes[i]=a.get(i);
+	}
+	c = new Condition(typeContrainte,contraintes);
+	return c;
+  }
+  
+}

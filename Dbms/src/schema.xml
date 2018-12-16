@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<BD nom="Vente">
+	<Relation nom="producteur">
+		<Attribut cle="PK" nom="id_producteur" type="int" />
+		<!--<Attribut nom="NOM" type="STRING" /> -->
+		<!--<Attribut nom="PRENOM" type="STRING" /> -->
+		<Attribut cle="Other" nom="nom" type="string" />
+		<Attribut cle="Other" nom="prenom" type="string" />
+	</Relation>
+	<Relation nom="produit">
+		<Attribut cle="PK" nom="id_produit" type="int" />
+		<Attribut cle="Other" nom="denomination" type="string" />
+		<!--<Attribut nom="Energie" type="int" />-->
+		<!--<Attribut nom="Proteine" type="int" />-->
+		<Attribut cle="FK" nom="id_producteur" type="int" />
+	</Relation>
+	<Relation nom="production">
+		<Attribut cle="PK" nom="id_production" type="int"/>
+		<Attribut cle="FK" nom="id_produit" type="int"/>
+		<Attribut cle="Other" nom="quantite" type="int"/>
+	</Relation>
+</BD>

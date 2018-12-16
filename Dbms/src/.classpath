@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<classpath>
+	<classpathentry kind="src" path=""/>
+	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER"/>
+	<classpathentry kind="lib" path="/home/gabriel/Documents/L3_MIAGE/S6/BDD/vfinal/superTP_POO_2018/jefferson_noel_nourrit_traore/ProjetPPO/jus.util.assertion.jar"/>
+	<classpathentry kind="output" path=""/>
+</classpath>
